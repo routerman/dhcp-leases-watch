@@ -16,5 +16,5 @@ lua 5.1.5
 ## crontab
 
    $ crontab -l
-   * * * * * cd /path/to/dhcp-leases-watch; lua main.lua
+   * * * * * cd /path/to/dhcp-leases-watch; lua main.lua > /dev/null
 

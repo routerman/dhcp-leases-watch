@@ -58,9 +58,6 @@ nf:close()
 
 result = ""
 
-disconnected_devices = old_devices
-connected_devices = new_devices
-
 for i = 1, #ignore_devices do
   new_devices[ignore_devices[i]] = nil
   old_devices[ignore_devices[i]] = nil
@@ -79,29 +76,26 @@ for key, value in pairs(old_devices) do
   new_devices[key] = nil
 end
 
-result = result .. '-- disconnected devices -- \n'
-
-for key, value in pairs(old_devices) do
-  result = result .. key .. "(" .. value['ip'] .. ") connected at " .. os.date('%Y-%m-%d %H:%M:%S', value['time']) .. "\n"
+if old_devices ~= {} then
+  for key, value in pairs(old_devices) do
+    result = result .. key .. "(" .. value['ip'] .. ") disconnected at " .. os.date('%Y-%m-%d %H:%M:%S', value['time']) .. "\n"
+  end
 end
 
-result = result .. '-- connected devices -- \n'
-
-for key, value in pairs(new_devices) do
-  result = result .. key .. "(" .. value['ip'] .. ") connected at " .. os.date('%Y-%m-%d %H:%M:%S', value['time']) .. "\n"
+if new_devices ~= {} then
+  for key, value in pairs(new_devices) do
+    result = result .. key .. "(" .. value['ip'] .. ") connected at " .. os.date('%Y-%m-%d %H:%M:%S', value['time']) .. "\n"
+  end
 end
 
--- output --
+-- copy and notify only when file changed
+if result ~= "" then
+  if not test then
+    print("cp " .. new_file .. " " .. old_file)
+    os.execute("cp " .. new_file .. " " .. old_file)
+  end
 
-print(result)
-
-
-if not test then
-  print("cp " .. new_file .. " " .. old_file)
-  --os.execute("cp " .. new_file .. " " .. old_file)
+  -- slack notify --
+  curl_command = "curl -X POST \'" .. slack_url .. "\' -d \'{\"text\": \"" .. result .. "\"}\'"
+  os.execute(curl_command)
 end
-
--- slack notify --
-curl_command = "curl -X POST \'" .. slack_url .. "\' -d \'{\"text\": \"" .. result .. "\"}\'"
-os.execute(curl_command)
-
